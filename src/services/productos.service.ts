@@ -1,5 +1,5 @@
 import { prisma } from '../index';
-import { IProductos, IPaginatedResponse, IProductoFilters, ICreateProductoDTO, IUpdateProductoDTO } from '../types';
+import { IProductos, IIva, IPaginatedResponse, IProductoFilters, ICreateProductoDTO, IUpdateProductoDTO, ICrearProductoContenido, IMarca, ICategoria, ISubcategoria } from '../types';
 
 export class ProductosService {
     
@@ -214,5 +214,45 @@ export class ProductosService {
         });
 
         return productos as IProductos[];
+    }
+
+
+    async getContenidoCrearProducto(): Promise<ICrearProductoContenido> {
+        const [marcas, categorias, subcategorias, ivas] = await Promise.all([
+            prisma.marca.findMany({
+                orderBy: { nombre: 'asc' }
+            }),
+            prisma.categoria.findMany({
+                orderBy: { nombre: 'asc' }
+            }),
+            prisma.subcategoria.findMany({
+                include: {
+                    categoria: true
+                },
+                orderBy: { nombre: 'asc' }
+            }),
+            prisma.iva.findMany({
+                orderBy: { id_iva: 'asc' }
+            })
+        ]);
+
+        return {
+            marcas: marcas as IMarca[],
+            categorias: categorias as ICategoria[],
+            subcategorias: subcategorias as ISubcategoria[],
+            ivas: ivas as IIva[]
+        };
+    }
+
+    async getSubcategoriasPorCategoria(id_cat: number): Promise<ISubcategoria[]> {
+        const subcategorias = await prisma.subcategoria.findMany({
+            where: { id_cat: id_cat },
+            include: {
+                categoria: true
+            },
+            orderBy: { nombre: 'asc' }
+        });
+
+        return subcategorias as ISubcategoria[];
     }
 }

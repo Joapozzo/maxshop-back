@@ -29,7 +29,7 @@ export interface INegocio {
 export interface IRoles {
     id_rol: number;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
 }
 
 export interface IUsuarios {
@@ -75,7 +75,7 @@ export interface ICliente {
 export interface ICategoria {
     id_cat: number;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
     // Relaciones
     subcategorias?: ISubcategoria[];
 }
@@ -84,7 +84,7 @@ export interface ISubcategoria {
     id_subcat: number;
     id_cat?: number | null;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
     // Relaciones
     categoria?: ICategoria | null;
     productos?: IProductos[];
@@ -93,13 +93,13 @@ export interface ISubcategoria {
 export interface IIva {
     id_iva: number;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
 }
 
 export interface IMarca {
     id_marca: number;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
 }
 
 export interface IProductos {
@@ -108,7 +108,7 @@ export interface IProductos {
     id_interno?: string | null;
     cod_sku?: string | null;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
     modelo?: string | null;
     id_marca?: number | null;
     precio_mayorista?: number | null;
@@ -135,7 +135,7 @@ export interface IProductos {
 export interface IEventos {
     id_evento: number;
     nombre?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
     fecha_inicio?: Date | null;
     fecha_fin?: Date | null;
     tipo_descuento?: TipoDescuento | null;
@@ -151,7 +151,7 @@ export interface IEventos {
 export interface IReglasEvento {
     id_regla: number;
     id_evento?: number | null;
-    tipo_desc?: TipoDescuento | null;
+    tipo_descuento?: TipoDescuento | null;
     valor_desc?: number | null;
     desc_regla?: string | null;
     condicion_extra?: any | null; // JSONB
@@ -182,7 +182,7 @@ export interface IAuditoria {
     user_agent?: string | null;
     endpoint?: string | null;
     estado?: string | null;
-    desc?: string | null;
+    descripcion?: string | null;
     tiempo_procesamiento?: number | null;
     // Relaciones
     usuario?: IUsuarios | null;
@@ -270,7 +270,7 @@ export interface ILoginDTO {
 export interface ICreateProductoDTO {
     id_subcat: number;
     nombre: string;
-    desc?: string;
+    descripcion?: string;
     id_marca?: number;
     precio: number;
     precio_mayorista?: number;
@@ -367,4 +367,56 @@ export interface IVentaFilters {
     metodo_pago?: MetodoPago;
     page?: number;
     limit?: number;
+}
+
+
+// =======================================
+// DTOs para Marcas
+// =======================================
+
+export interface ICreateMarcaDTO {
+    nombre: string;
+    descripcion?: string;
+}
+
+export interface IUpdateMarcaDTO {
+    nombre?: string;
+    descripcion?: string;
+}
+
+// =======================================
+// DTOs para Categorías y Subcategorías
+// =======================================
+
+export interface ICreateCategoriaDTO {
+    nombre: string;
+    descripcion?: string;
+}
+
+export interface IUpdateCategoriaDTO {
+    nombre?: string;
+    descripcion?: string;
+}
+
+export interface ICreateSubcategoriaDTO {
+    id_cat: number;
+    nombre: string;
+    descripcion?: string;
+}
+
+export interface IUpdateSubcategoriaDTO {
+    id_cat?: number;
+    nombre?: string;
+    descripcion?: string;
+}
+
+// =======================================
+// Respuesta para cargar el formulario de crear productos
+// =======================================
+
+export interface ICrearProductoContenido {
+    marcas: IMarca[];
+    categorias: ICategoria[];
+    subcategorias: ISubcategoria[];
+    ivas: IIva[];
 }
