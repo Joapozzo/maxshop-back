@@ -75,10 +75,10 @@ model cliente {
 }
 
 model categoria {
-  id_cat        Int             @id @default(autoincrement())
-  nombre        String?         @db.VarChar(100)
-  descripcion   String?         @db.VarChar(255)
-  sub_categoria sub_categoria[]
+  id_cat       Int            @id @default(autoincrement())
+  nombre       String?        @db.VarChar(100)
+  descripcion  String?        @db.VarChar(255)
+  subcategoria subcategoria[]
 }
 
 model iva {
@@ -121,7 +121,7 @@ model productos {
   estado           Int?
   iva              iva?            @relation(fields: [id_iva], references: [id_iva], onDelete: NoAction, onUpdate: NoAction)
   marca            marca?          @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction)
-  subcategoria     sub_categoria?  @relation(fields: [id_subcat], references: [id_subcat], onDelete: NoAction, onUpdate: NoAction)
+  subcategoria     subcategoria?   @relation(fields: [id_subcat], references: [id_subcat], onDelete: NoAction, onUpdate: NoAction)
   venta_detalle    venta_detalle[]
 
   @@index([id_subcat], map: "idx_productos_categoria")
@@ -229,17 +229,6 @@ model reglas_evento {
   @@map("reglas-evento")
 }
 
-model sub_categoria {
-  id_subcat   Int         @id(map: "Sub-categoria_pkey") @default(autoincrement())
-  id_cat      Int?
-  nombre      String?     @db.VarChar(100)
-  descripcion String?     @db.VarChar(255)
-  productos   productos[]
-  categoria   categoria?  @relation(fields: [id_cat], references: [id_cat], onDelete: NoAction, onUpdate: NoAction, map: "Sub-categoria_id_cat_fkey")
-
-  @@map("sub-categoria")
-}
-
 model venta_detalle {
   id_detalle         Int        @id(map: "Venta-detalle_pkey") @default(autoincrement())
   id_venta           Int?
@@ -255,4 +244,13 @@ model venta_detalle {
   venta              venta?     @relation(fields: [id_venta], references: [id_venta], onDelete: NoAction, onUpdate: NoAction, map: "Venta-detalle_id_venta_fkey")
 
   @@map("venta-detalle")
+}
+
+model subcategoria {
+  id_subcat   Int         @id(map: "Sub-categoria_pkey") @default(autoincrement())
+  id_cat      Int?
+  nombre      String?     @db.VarChar(100)
+  descripcion String?     @db.VarChar(255)
+  productos   productos[]
+  categoria   categoria?  @relation(fields: [id_cat], references: [id_cat], onDelete: NoAction, onUpdate: NoAction, map: "Sub-categoria_id_cat_fkey")
 }

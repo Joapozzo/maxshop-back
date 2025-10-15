@@ -1,12 +1,21 @@
+// src/routes/productos.routes.ts
 import { Router } from 'express';
 import { ProductosController } from '../controllers/productos.controller';
 
 const router = Router();
 const productosController = new ProductosController();
 
+// ⚠️ IMPORTANTE: Las rutas específicas ANTES de las rutas con parámetros
+
+// Rutas para obtener datos del formulario
+router.get('/contenido-crear', productosController.getContenidoCrearProducto.bind(productosController));
+router.get('/subcategorias/:id_cat', productosController.getSubcategoriasPorCategoria.bind(productosController));
+
+// Rutas especiales
 router.get('/destacados', productosController.getDestacados.bind(productosController));
 router.get('/stock-bajo', productosController.getStockBajo.bind(productosController));
 
+// Rutas CRUD generales
 router.get('/', productosController.getAll.bind(productosController));
 router.get('/:id', productosController.getById.bind(productosController));
 

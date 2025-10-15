@@ -251,4 +251,63 @@ export class ProductosController {
             });
         }
     }
+
+
+
+    /**
+     * Obtiene todos los datos necesarios para crear un producto
+     * (Marcas, Categorías, Subcategorías, IVAs)
+     * GET /api/products/contenido-crear
+     */
+    async getContenidoCrearProducto(req: Request, res: Response): Promise<void> {
+        try {
+            const contenido = await productosService.getContenidoCrearProducto();
+
+            const response: IApiResponse = {
+                success: true,
+                data: contenido
+            };
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error en getContenidoCrearProducto:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener contenido para crear producto'
+            });
+        }
+    }
+
+    /**
+     * Obtiene subcategorías filtradas por categoría
+     * GET /api/products/subcategorias/:id_cat
+     */
+    async getSubcategoriasPorCategoria(req: Request, res: Response): Promise<void> {
+        try {
+            const id_cat = parseInt(req.params.id_cat);
+
+            if (isNaN(id_cat)) {
+                res.status(400).json({
+                    success: false,
+                    error: 'ID de categoría inválido'
+                });
+                return;
+            }
+
+            const subcategorias = await productosService.getSubcategoriasPorCategoria(id_cat);
+
+            const response: IApiResponse = {
+                success: true,
+                data: subcategorias
+            };
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error en getSubcategoriasPorCategoria:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener subcategorías'
+            });
+        }
+    }
 }
