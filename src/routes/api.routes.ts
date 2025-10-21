@@ -19,4 +19,4 @@ apiRoutes.use('/categorias', categoriasRoutes);
 // apiRoutes.use('/users', require('./users.routes'));
 // apiRoutes.use('/ventas', require('./ventas.routes'));
 
-export default apiRoutes;
+export default apiRoutes;   
