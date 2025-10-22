@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ProductosService } from '../services/productos.service';
-import { IProductoFilters, ICreateProductoDTO, IUpdateProductoDTO, IApiResponse } from '../types';
+import { IApiResponse } from '../types';
+import { IProductoFilters, ICreateProductoDTO, IUpdateProductoDTO } from '../types/product.type';
 
 const productosService = new ProductosService();
 

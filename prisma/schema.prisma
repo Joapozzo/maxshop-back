@@ -79,6 +79,7 @@ model categoria {
   nombre       String?        @db.VarChar(100)
   descripcion  String?        @db.VarChar(255)
   subcategoria subcategoria[]
+  productos    productos[]
 }
 
 model iva {
@@ -97,6 +98,7 @@ model marca {
 
 model productos {
   id_prod          Int             @id @default(autoincrement())
+  id_cat           Int?      
   id_subcat        Int?
   id_interno       String?         @db.VarChar(100)
   cod_sku          String?         @db.VarChar(100)
@@ -122,6 +124,7 @@ model productos {
   iva              iva?            @relation(fields: [id_iva], references: [id_iva], onDelete: NoAction, onUpdate: NoAction)
   marca            marca?          @relation(fields: [id_marca], references: [id_marca], onDelete: NoAction, onUpdate: NoAction)
   subcategoria     subcategoria?   @relation(fields: [id_subcat], references: [id_subcat], onDelete: NoAction, onUpdate: NoAction)
+  categoria        categoria?      @relation(fields: [id_cat], references: [id_cat], onDelete: NoAction, onUpdate: NoAction)
   venta_detalle    venta_detalle[]
 
   @@index([id_subcat], map: "idx_productos_categoria")

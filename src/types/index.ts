@@ -1,4 +1,7 @@
-export type EstadoGeneral = 0 | 1;
+import { IProductos } from "./product.type";
+
+// 1 = activo, 2 = inactivo, 0 = eliminado
+export type EstadoGeneral = 0 | 1 | 2;
 
 export type EstadoPago = 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado';
 
@@ -72,24 +75,6 @@ export interface ICliente {
     usuario?: IUsuarios;
 }
 
-export interface ICategoria {
-    id_cat: number;
-    nombre?: string | null;
-    descripcion?: string | null;
-    // Relaciones
-    subcategorias?: ISubcategoria[];
-}
-
-export interface ISubcategoria {
-    id_subcat: number;
-    id_cat?: number | null;
-    nombre?: string | null;
-    descripcion?: string | null;
-    // Relaciones
-    categoria?: ICategoria | null;
-    productos?: IProductos[];
-}
-
 export interface IIva {
     id_iva: number;
     nombre?: string | null;
@@ -100,36 +85,6 @@ export interface IMarca {
     id_marca: number;
     nombre?: string | null;
     descripcion?: string | null;
-}
-
-export interface IProductos {
-    id_prod: number;
-    id_subcat?: number | null;
-    id_interno?: string | null;
-    cod_sku?: string | null;
-    nombre?: string | null;
-    descripcion?: string | null;
-    modelo?: string | null;
-    id_marca?: number | null;
-    precio_mayorista?: number | null;
-    precio_minorista?: number | null;
-    precio_evento?: number | null;
-    precio?: number | null;
-    id_iva?: number | null;
-    stock?: number | null;
-    stock_min?: number | null;
-    stock_mayorista?: number | null;
-    img_principal?: string | null;
-    imagenes?: string[] | null; // JSONB
-    destacado?: boolean | null;
-    financiacion?: boolean | null;
-    creado_en?: Date | null;
-    actualizado_en?: Date | null;
-    estado?: EstadoGeneral | null;
-    // Relaciones
-    subcategoria?: ISubcategoria | null;
-    marca?: IMarca | null;
-    iva?: IIva | null;
 }
 
 export interface IEventos {
@@ -266,28 +221,6 @@ export interface ILoginDTO {
     password: string;
 }
 
-// Para crear producto
-export interface ICreateProductoDTO {
-    id_subcat: number;
-    nombre: string;
-    descripcion?: string;
-    id_marca?: number;
-    precio: number;
-    precio_mayorista?: number;
-    precio_minorista?: number;
-    id_iva?: number;
-    stock: number;
-    cod_sku?: string;
-    img_principal?: string;
-    imagenes?: string[];
-    destacado?: boolean;
-}
-
-// Para actualizar producto
-export interface IUpdateProductoDTO extends Partial<ICreateProductoDTO> {
-    estado?: EstadoGeneral;
-}
-
 // Para crear venta
 export interface ICreateVentaDTO {
     id_cliente?: string;
@@ -344,21 +277,6 @@ export interface IAuthResponse {
 // FILTROS Y QUERIES
 // =======================================
 
-export interface IProductoFilters {
-    id_subcat?: number;
-    id_cat?: number;
-    id_marca?: number;
-    precio_min?: number;
-    precio_max?: number;
-    destacado?: boolean;
-    busqueda?: string;
-    estado?: EstadoGeneral;
-    page?: number;
-    limit?: number;
-    order_by?: 'precio' | 'nombre' | 'creado_en';
-    order?: 'asc' | 'desc';
-}
-
 export interface IVentaFilters {
     id_cliente?: string;
     fecha_desde?: Date;
@@ -368,7 +286,6 @@ export interface IVentaFilters {
     page?: number;
     limit?: number;
 }
-
 
 // =======================================
 // DTOs para Marcas
@@ -382,41 +299,4 @@ export interface ICreateMarcaDTO {
 export interface IUpdateMarcaDTO {
     nombre?: string;
     descripcion?: string;
-}
-
-// =======================================
-// DTOs para Categorías y Subcategorías
-// =======================================
-
-export interface ICreateCategoriaDTO {
-    nombre: string;
-    descripcion?: string;
-}
-
-export interface IUpdateCategoriaDTO {
-    nombre?: string;
-    descripcion?: string;
-}
-
-export interface ICreateSubcategoriaDTO {
-    id_cat: number;
-    nombre: string;
-    descripcion?: string;
-}
-
-export interface IUpdateSubcategoriaDTO {
-    id_cat?: number;
-    nombre?: string;
-    descripcion?: string;
-}
-
-// =======================================
-// Respuesta para cargar el formulario de crear productos
-// =======================================
-
-export interface ICrearProductoContenido {
-    marcas: IMarca[];
-    categorias: ICategoria[];
-    subcategorias: ISubcategoria[];
-    ivas: IIva[];
 }

@@ -1,4 +1,3 @@
-// src/services/categorias.service.ts
 import { prisma } from '../index';
 import { 
     ICategoria, 
@@ -7,7 +6,7 @@ import {
     IUpdateCategoriaDTO,
     ICreateSubcategoriaDTO,
     IUpdateSubcategoriaDTO
-} from '../types';
+} from '../types/categoria.type';
 
 export class CategoriasService {
     
