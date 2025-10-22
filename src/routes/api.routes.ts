@@ -10,4 +10,4 @@ apiRoutes.use('/marcas', marcasRoutes);
 apiRoutes.use('/categorias', categoriasRoutes);
 
 
-export default apiRoutes;
+export default apiRoutes;   

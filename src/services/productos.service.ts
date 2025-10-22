@@ -24,7 +24,14 @@ export class ProductosService {
         // Construir el where dinámicamente
         const whereClause: any = {};
 
-        if (estado !== undefined) whereClause.estado = estado;
+        // ⭐ IMPORTANTE: Solo productos activos (excluir eliminados)
+        // Si se proporciona estado explícitamente, usarlo; sino, solo activos
+        if (estado !== undefined) {
+            whereClause.estado = estado;
+        } else {
+            whereClause.estado = 1; // Por defecto, solo activos
+        }
+
         if (destacado !== undefined) whereClause.destacado = destacado;
         if (id_subcat) whereClause.id_subcat = id_subcat;
         if (id_marca) whereClause.id_marca = id_marca;
@@ -85,7 +92,10 @@ export class ProductosService {
 
     async getById(id: number): Promise<IProductos | null> {
         const producto = await prisma.productos.findFirst({
-            where: { id_prod: id },
+            where: { 
+                id_prod: id,
+                estado: 1 // ⭐ Solo productos activos
+            },
             include: {
                 subcategoria: {
                     include: {
@@ -156,6 +166,7 @@ export class ProductosService {
     }
 
     async delete(id: number): Promise<void> {
+        // Soft delete: cambiar estado a 0
         await prisma.productos.update({
             where: { id_prod: id },
             data: {
@@ -167,18 +178,31 @@ export class ProductosService {
 
     async exists(id: number): Promise<boolean> {
         const count = await prisma.productos.count({
-            where: { id_prod: id }
+            where: { 
+                id_prod: id,
+                estado: 1 // ⭐ Solo contar productos activos
+            }
         });
         return count > 0;
     }
 
     async updateStock(id: number, cantidad: number): Promise<IProductos> {
-        const producto = await this.getById(id);
+        const producto = await prisma.productos.findFirst({
+            where: { 
+                id_prod: id,
+                estado: 1 // ⭐ Solo productos activos
+            }
+        });
+
         if (!producto) {
-            throw new Error('Producto no encontrado');
+            throw new Error('Producto no encontrado o inactivo');
         }
 
         const nuevoStock = (producto.stock || 0) + cantidad;
+
+        if (nuevoStock < 0) {
+            throw new Error(`Stock insuficiente. Stock actual: ${producto.stock}, intentando reducir: ${Math.abs(cantidad)}`);
+        }
 
         return await this.update(id, { stock: nuevoStock });
     }
@@ -187,7 +211,7 @@ export class ProductosService {
         const productos = await prisma.productos.findMany({
             where: {
                 destacado: true,
-                estado: 1,
+                estado: 1, // ⭐ Solo productos activos
                 stock: {
                     gt: 0
                 }
@@ -213,10 +237,16 @@ export class ProductosService {
     async getStockBajo(): Promise<IProductos[]> {
         const productos = await prisma.productos.findMany({
             where: {
-                estado: 1,
-                stock: {
-                    lte: prisma.productos.fields.stock_min
-                }
+                estado: 1, // ⭐ Solo productos activos
+                OR: [
+                    {
+                        AND: [
+                            { stock: { not: null } },
+                            { stock_min: { not: null } },
+                            { stock: { lte: prisma.productos.fields.stock_min } }
+                        ]
+                    }
+                ]
             },
             include: {
                 subcategoria: true,
@@ -267,5 +297,42 @@ export class ProductosService {
         });
 
         return subcategorias as ISubcategoria[];
+    }
+
+    /**
+     * ⭐ NUEVO: Toggle destacado (agregar/quitar producto destacado)
+     */
+    async toggleDestacado(id: number): Promise<IProductos> {
+        const producto = await prisma.productos.findFirst({
+            where: { 
+                id_prod: id,
+                estado: 1 // Solo productos activos pueden ser destacados
+            }
+        });
+
+        if (!producto) {
+            throw new Error('Producto no encontrado o inactivo');
+        }
+
+        const nuevoEstadoDestacado = !producto.destacado;
+
+        const productoActualizado = await prisma.productos.update({
+            where: { id_prod: id },
+            data: {
+                destacado: nuevoEstadoDestacado,
+                actualizado_en: new Date()
+            },
+            include: {
+                subcategoria: {
+                    include: {
+                        categoria: true
+                    }
+                },
+                marca: true,
+                iva: true
+            }
+        });
+
+        return productoActualizado as IProductos;
     }
 }
