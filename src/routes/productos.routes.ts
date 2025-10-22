@@ -1,11 +1,10 @@
-// src/routes/productos.routes.ts
 import { Router } from 'express';
 import { ProductosController } from '../controllers/productos.controller';
 
 const router = Router();
 const productosController = new ProductosController();
 
-// ⚠️ IMPORTANTE: Las rutas específicas ANTES de las rutas con parámetros
+
 
 // Rutas para obtener datos del formulario
 router.get('/contenido-crear', productosController.getContenidoCrearProducto.bind(productosController));
