@@ -51,7 +51,7 @@ export class ProductosController {
             if (!producto) {
                 res.status(404).json({
                     success: false,
-                    error: 'Producto no encontrado'
+                    error: 'Producto no encontrado o inactivo'
                 });
                 return;
             }
@@ -115,12 +115,12 @@ export class ProductosController {
                 return;
             }
 
-            // Verificar si el producto existe
+            // Verificar si el producto existe y está activo
             const existe = await productosService.exists(id);
             if (!existe) {
                 res.status(404).json({
                     success: false,
-                    error: 'Producto no encontrado'
+                    error: 'Producto no encontrado o inactivo'
                 });
                 return;
             }
@@ -155,12 +155,12 @@ export class ProductosController {
                 return;
             }
 
-            // Verificar si el producto existe
+            // Verificar si el producto existe y está activo
             const existe = await productosService.exists(id);
             if (!existe) {
                 res.status(404).json({
                     success: false,
-                    error: 'Producto no encontrado'
+                    error: 'Producto no encontrado o ya está inactivo'
                 });
                 return;
             }
@@ -169,7 +169,7 @@ export class ProductosController {
 
             const response: IApiResponse = {
                 success: true,
-                message: 'Producto eliminado exitosamente'
+                message: 'Producto eliminado exitosamente (soft delete)'
             };
 
             res.json(response);
@@ -248,6 +248,93 @@ export class ProductosController {
             res.status(500).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Error al actualizar stock'
+            });
+        }
+    }
+
+    async getContenidoCrearProducto(req: Request, res: Response): Promise<void> {
+        try {
+            const contenido = await productosService.getContenidoCrearProducto();
+
+            const response: IApiResponse = {
+                success: true,
+                data: contenido
+            };
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error en getContenidoCrearProducto:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener contenido para crear producto'
+            });
+        }
+    }
+
+    async getSubcategoriasPorCategoria(req: Request, res: Response): Promise<void> {
+        try {
+            const id_cat = parseInt(req.params.id_cat);
+
+            if (isNaN(id_cat)) {
+                res.status(400).json({
+                    success: false,
+                    error: 'ID de categoría inválido'
+                });
+                return;
+            }
+
+            const subcategorias = await productosService.getSubcategoriasPorCategoria(id_cat);
+
+            const response: IApiResponse = {
+                success: true,
+                data: subcategorias
+            };
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error en getSubcategoriasPorCategoria:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener subcategorías'
+            });
+        }
+    }
+
+    /**
+     * ⭐ NUEVO: Toggle destacado (agregar/quitar producto destacado)
+     * PATCH /api/products/:id/destacado
+     */
+    async toggleDestacado(req: Request, res: Response): Promise<void> {
+        try {
+            const id = parseInt(req.params.id);
+
+            if (isNaN(id)) {
+                res.status(400).json({
+                    success: false,
+                    error: 'ID inválido'
+                });
+                return;
+            }
+
+            const producto = await productosService.toggleDestacado(id);
+
+            const mensaje = producto.destacado 
+                ? `Producto "${producto.nombre}" marcado como destacado`
+                : `Producto "${producto.nombre}" removido de destacados`;
+
+            const response: IApiResponse = {
+                success: true,
+                data: producto,
+                message: mensaje
+            };
+
+            console.log(`✅ ${mensaje}`);
+            res.json(response);
+        } catch (error) {
+            console.error('Error en toggleDestacado:', error);
+            res.status(500).json({
+                success: false,
+                error: error instanceof Error ? error.message : 'Error al cambiar estado destacado'
             });
         }
     }
