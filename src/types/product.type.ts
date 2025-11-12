@@ -46,11 +46,13 @@ export interface IProductoFilters {
     precio_min?: number;
     precio_max?: number;
     destacado?: boolean;
+    financiacion?: boolean;
+    stock_bajo?: boolean;
     busqueda?: string;
     estado?: EstadoGeneral;
     page?: number;
     limit?: number;
-    order_by?: 'precio' | 'nombre' | 'creado_en';
+    order_by?: 'precio' | 'nombre' | 'creado_en' | 'stock';
     order?: 'asc' | 'desc';
 }
 
