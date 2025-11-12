@@ -18,7 +18,9 @@ export class ProductosService {
             id_marca,
             precio_min,
             precio_max,
-            destacado
+            destacado,
+            financiacion,
+            stock_bajo
         } = filters;
 
         // Construir el where dinámicamente
@@ -33,14 +35,22 @@ export class ProductosService {
         }
 
         if (destacado !== undefined) whereClause.destacado = destacado;
+        if (financiacion !== undefined) whereClause.financiacion = financiacion;
         if (id_subcat) whereClause.id_subcat = id_subcat;
         if (id_marca) whereClause.id_marca = id_marca;
 
-        // Filtro por categoría (a través de subcategoría)
+        // ✅ FIX: Filtro por categoría - buscar tanto en id_cat directo como en subcategoria
         if (id_cat) {
-            whereClause.subcategoria = {
-                id_cat: id_cat
-            };
+            whereClause.OR = [
+                // Productos que tienen id_cat directamente
+                { id_cat: id_cat },
+                // Productos que tienen subcategoría de esta categoría
+                {
+                    subcategoria: {
+                        id_cat: id_cat
+                    }
+                }
+            ];
         }
 
         // Filtro por rango de precio
@@ -50,13 +60,39 @@ export class ProductosService {
             if (precio_max !== undefined) whereClause.precio.lte = precio_max;
         }
 
+        // Filtro por stock bajo
+        if (stock_bajo) {
+            whereClause.AND = [
+                { stock: { not: null } },
+                { stock_min: { not: null } },
+                { stock: { lte: prisma.productos.fields.stock_min } }
+            ];
+        }
+
         // Búsqueda por nombre, descripción o SKU
         if (busqueda) {
-            whereClause.OR = [
+            // Si ya existe un OR (por ejemplo, por el filtro de categoría), combinarlo
+            const searchConditions = [
                 { nombre: { contains: busqueda, mode: 'insensitive' } },
                 { descripcion: { contains: busqueda, mode: 'insensitive' } },
                 { cod_sku: { contains: busqueda, mode: 'insensitive' } },
             ];
+
+            if (whereClause.OR) {
+                // Combinar búsqueda con OR existente usando AND
+                whereClause.AND = [
+                    ...(whereClause.AND || []),
+                    {
+                        OR: whereClause.OR
+                    },
+                    {
+                        OR: searchConditions
+                    }
+                ];
+                delete whereClause.OR;
+            } else {
+                whereClause.OR = searchConditions;
+            }
         }
 
         // Ejecutar queries en paralelo
@@ -299,9 +335,6 @@ export class ProductosService {
         return subcategorias as ISubcategoria[];
     }
 
-    /**
-     * ⭐ NUEVO: Toggle destacado (agregar/quitar producto destacado)
-     */
     async toggleDestacado(id: number): Promise<IProductos> {
         const producto = await prisma.productos.findFirst({
             where: { 
