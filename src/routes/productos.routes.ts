@@ -9,8 +9,6 @@ import {
 const router = Router();
 const productosController = new ProductosController();
 
-
-
 // Rutas para obtener datos del formulario (sin middleware)
 router.get('/contenido-crear', productosController.getContenidoCrearProducto.bind(productosController));
 router.get('/subcategorias/:id_cat', productosController.getSubcategoriasPorCategoria.bind(productosController));

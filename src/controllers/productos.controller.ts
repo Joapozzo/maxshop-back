@@ -22,6 +22,8 @@ export class ProductosController {
                 precio_min: req.query.precio_min ? parseFloat(req.query.precio_min as string) : undefined,
                 precio_max: req.query.precio_max ? parseFloat(req.query.precio_max as string) : undefined,
                 destacado: req.query.destacado === 'true' ? true : req.query.destacado === 'false' ? false : undefined,
+                financiacion: req.query.financiacion === 'true' ? true : req.query.financiacion === 'false' ? false : undefined,
+                stock_bajo: req.query.stock_bajo === 'true' ? true : req.query.stock_bajo === 'false' ? false : undefined,
             };
 
             const result = await productosService.getAll(filters);
