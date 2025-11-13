@@ -1,4 +1,3 @@
-// src/controllers/categorias.controller.ts
 import { Request, Response } from 'express';
 import { CategoriasService } from '../services/categorias.service';
 import { 
@@ -6,8 +5,8 @@ import {
     IUpdateCategoriaDTO,
     ICreateSubcategoriaDTO,
     IUpdateSubcategoriaDTO,
-    IApiResponse 
-} from '../types';
+} from '../types/categoria.type';
+import { IApiResponse } from '../types/index';
 
 const categoriasService = new CategoriasService();
 

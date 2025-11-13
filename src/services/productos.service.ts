@@ -1,22 +1,26 @@
 import { prisma } from '../index';
-import { IProductos, IIva, IPaginatedResponse, IProductoFilters, ICreateProductoDTO, IUpdateProductoDTO, ICrearProductoContenido, IMarca, ICategoria, ISubcategoria } from '../types';
+import { IIva, IPaginatedResponse, IMarca } from '../types';
+import { ICategoria, ISubcategoria } from '../types/categoria.type';
+import { ICrearProductoContenido, ICreateProductoDTO, IProductoFilters, IProductos, IUpdateProductoDTO } from '../types/product.type';
 
 export class ProductosService {
-    
+
     async getAll(filters: IProductoFilters): Promise<IPaginatedResponse<IProductos>> {
-        const { 
-            page = 1, 
-            limit = 10, 
-            order_by = 'creado_en', 
-            order = 'desc', 
-            estado, 
-            busqueda, 
-            id_subcat, 
-            id_cat, 
-            id_marca, 
-            precio_min, 
-            precio_max, 
-            destacado 
+        const {
+            page = 1,
+            limit = 10,
+            order_by = 'creado_en',
+            order = 'desc',
+            estado,
+            busqueda,
+            id_subcat,
+            id_cat,
+            id_marca,
+            precio_min,
+            precio_max,
+            destacado,
+            financiacion,
+            stock_bajo
         } = filters;
 
         // Construir el where dinámicamente
@@ -31,14 +35,22 @@ export class ProductosService {
         }
 
         if (destacado !== undefined) whereClause.destacado = destacado;
+        if (financiacion !== undefined) whereClause.financiacion = financiacion;
         if (id_subcat) whereClause.id_subcat = id_subcat;
         if (id_marca) whereClause.id_marca = id_marca;
 
-        // Filtro por categoría (a través de subcategoría)
+        // ✅ FIX: Filtro por categoría - buscar tanto en id_cat directo como en subcategoria
         if (id_cat) {
-            whereClause.subcategoria = {
-                id_cat: id_cat
-            };
+            whereClause.OR = [
+                // Productos que tienen id_cat directamente
+                { id_cat: id_cat },
+                // Productos que tienen subcategoría de esta categoría
+                {
+                    subcategoria: {
+                        id_cat: id_cat
+                    }
+                }
+            ];
         }
 
         // Filtro por rango de precio
@@ -48,13 +60,39 @@ export class ProductosService {
             if (precio_max !== undefined) whereClause.precio.lte = precio_max;
         }
 
+        // Filtro por stock bajo
+        if (stock_bajo) {
+            whereClause.AND = [
+                { stock: { not: null } },
+                { stock_min: { not: null } },
+                { stock: { lte: prisma.productos.fields.stock_min } }
+            ];
+        }
+
         // Búsqueda por nombre, descripción o SKU
         if (busqueda) {
-            whereClause.OR = [
+            // Si ya existe un OR (por ejemplo, por el filtro de categoría), combinarlo
+            const searchConditions = [
                 { nombre: { contains: busqueda, mode: 'insensitive' } },
                 { descripcion: { contains: busqueda, mode: 'insensitive' } },
                 { cod_sku: { contains: busqueda, mode: 'insensitive' } },
             ];
+
+            if (whereClause.OR) {
+                // Combinar búsqueda con OR existente usando AND
+                whereClause.AND = [
+                    ...(whereClause.AND || []),
+                    {
+                        OR: whereClause.OR
+                    },
+                    {
+                        OR: searchConditions
+                    }
+                ];
+                delete whereClause.OR;
+            } else {
+                whereClause.OR = searchConditions;
+            }
         }
 
         // Ejecutar queries en paralelo
@@ -109,10 +147,15 @@ export class ProductosService {
     }
 
     async create(data: ICreateProductoDTO): Promise<IProductos> {
+        const { id_cat, id_subcat, id_marca, id_iva, ...cleanData } = data;
+
         const nuevoProducto = await prisma.productos.create({
             data: {
-                ...data,
-                estado: 1, // Siempre crear como activo
+                ...cleanData,
+                id_subcat: id_subcat ? Number(id_subcat) : null,
+                id_marca: id_marca ? Number(id_marca) : null,
+                id_iva: id_iva ? Number(id_iva) : null,
+                estado: 1,
                 creado_en: new Date(),
                 actualizado_en: new Date()
             },
@@ -122,6 +165,7 @@ export class ProductosService {
                         categoria: true
                     }
                 },
+
                 marca: true,
                 iva: true
             }
@@ -131,10 +175,16 @@ export class ProductosService {
     }
 
     async update(id: number, data: IUpdateProductoDTO): Promise<IProductos> {
+        const { id_cat, id_subcat, id_marca, id_iva, estado, ...cleanData } = data;
         const productoActualizado = await prisma.productos.update({
             where: { id_prod: id },
             data: {
-                ...data,
+                ...cleanData,
+                id_subcat: id_subcat ? Number(id_subcat) : null,
+                id_marca: id_marca ? Number(id_marca) : null,
+                id_cat: id_cat ? Number(id_cat) : null,
+                id_iva: id_iva ? Number(id_iva) : null,
+                estado: estado ? Number(estado) : null,
                 actualizado_en: new Date()
             },
             include: {
@@ -155,7 +205,7 @@ export class ProductosService {
         // Soft delete: cambiar estado a 0
         await prisma.productos.update({
             where: { id_prod: id },
-            data: { 
+            data: {
                 estado: 0,
                 actualizado_en: new Date()
             }
@@ -285,9 +335,6 @@ export class ProductosService {
         return subcategorias as ISubcategoria[];
     }
 
-    /**
-     * ⭐ NUEVO: Toggle destacado (agregar/quitar producto destacado)
-     */
     async toggleDestacado(id: number): Promise<IProductos> {
         const producto = await prisma.productos.findFirst({
             where: { 
