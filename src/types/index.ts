@@ -1,7 +1,8 @@
 import { IProductos } from "./product.type";
+export type { UserRole } from './auth.type';
 
-// 1 = activo, 2 = inactivo, 0 = eliminado
-export type EstadoGeneral = 0 | 1 | 2;
+// 1 = activo, 2 = inactivo, 0 = eliminado, 3 = perfil incompleto
+export type EstadoGeneral = 0 | 1 | 2 | 3;
 
 export type EstadoPago = 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado';
 
@@ -40,7 +41,7 @@ export interface IUsuarios {
     nombre?: string | null;
     apellido?: string | null;
     email?: string | null;
-    telefono?: number | null;
+    telefono?: string | null;
     username?: string | null;
     password?: string | null;
     id_rol?: number | null;
@@ -211,7 +212,7 @@ export interface ICreateUsuarioDTO {
     username: string;
     password: string;
     id_rol?: number;
-    telefono?: number;
+    telefono?: string;
     nacimiento?: Date;
 }
 
