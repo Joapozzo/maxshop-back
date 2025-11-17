@@ -30,11 +30,11 @@ model roles {
 }
 
 model usuarios {
-  id_usuario     String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_usuario     String      @id @unique @db.VarChar(150)
   nombre         String?     @db.VarChar(100)
   apellido       String?     @db.VarChar(100)
   email          String?     @db.VarChar(255)
-  telefono       Int?
+  telefono       String?     @db.VarChar(50)
   username       String?     @db.VarChar(100)
   password       String?     @db.VarChar(255)
   id_rol         Int?
@@ -55,17 +55,18 @@ model usuarios {
 
   @@index([email], map: "idx_usuarios_email")
   @@index([username], map: "idx_usuarios_username")
+  @@index([id_usuario], map: "idx_usuarios_id_usuario")
 }
 
 model admin {
   id_admin   String?  @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_usuario String   @id @db.Uuid
+  id_usuario String   @id @db.VarChar(150)
   usuarios   usuarios @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model cliente {
   id_cliente    String?  @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_usuario    String   @id @db.Uuid
+  id_usuario    String   @id @db.VarChar(150)
   direccion     String?  @db.VarChar(255)
   cod_postal    Int?
   ciudad        String?  @db.VarChar(100)
@@ -98,7 +99,7 @@ model marca {
 
 model productos {
   id_prod          Int             @id @default(autoincrement())
-  id_cat           Int?      
+  id_cat           Int?
   id_subcat        Int?
   id_interno       String?         @db.VarChar(100)
   cod_sku          String?         @db.VarChar(100)
@@ -149,7 +150,7 @@ model eventos {
 
 model auditoria {
   id_aud               Int       @id @default(autoincrement())
-  id_usuario           String?   @db.Uuid
+  id_usuario           String?   @db.VarChar(150)
   fecha                DateTime? @default(now()) @db.Timestamp(6)
   accion               String?   @db.VarChar(100)
   tabla_afectada       String?   @db.VarChar(100)
@@ -168,9 +169,9 @@ model auditoria {
 
 model venta {
   id_venta        Int             @id @default(autoincrement())
-  id_usuario      String?         @db.Uuid
+  id_usuario      String?         @db.VarChar(150)
   fecha           DateTime?       @default(now()) @db.Timestamp(6)
-  id_cliente      String?         @db.Uuid
+  id_cliente      String?         @db.VarChar(150)
   total_sin_iva   Decimal?        @db.Decimal(10, 2)
   total_con_iva   Decimal?        @db.Decimal(10, 2)
   descuento_total Decimal?        @db.Decimal(10, 2)
