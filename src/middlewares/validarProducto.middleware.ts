@@ -112,7 +112,7 @@ export const validarStockDisponible = async (
 
 /**
  * Middleware para validar que las relaciones del producto son válidas
- * (marca, subcategoría, IVA)
+ * (marca, categoría, grupo, IVA) - usando códigos CSV
  */
 export const validarRelacionesProducto = async (
     req: Request, 
@@ -120,51 +120,67 @@ export const validarRelacionesProducto = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { id_marca, id_subcat, id_iva } = req.body;
+        const { codi_marca, codi_categoria, codi_grupo, codi_impuesto } = req.body;
 
         // Validar marca si se proporciona
-        if (id_marca) {
-            const marca = await prisma.marca.findFirst({
-                where: { id_marca }
+        if (codi_marca) {
+            const marca = await prisma.marca.findUnique({
+                where: { codi_marca }
             });
 
             if (!marca) {
-                console.error(`❌ [Validación] Marca ID ${id_marca} no encontrada`);
+                console.error(`❌ [Validación] Marca código ${codi_marca} no encontrada`);
                 res.status(400).json({
                     success: false,
-                    error: `La marca especificada (ID: ${id_marca}) no existe`
+                    error: `La marca especificada (código: ${codi_marca}) no existe`
                 });
                 return;
             }
         }
 
-        // Validar subcategoría si se proporciona
-        if (id_subcat) {
-            const subcategoria = await prisma.subcategoria.findFirst({
-                where: { id_subcat }
+        // Validar categoría si se proporciona
+        if (codi_categoria) {
+            const categoria = await prisma.categoria.findUnique({
+                where: { codi_categoria }
             });
 
-            if (!subcategoria) {
-                console.error(`❌ [Validación] Subcategoría ID ${id_subcat} no encontrada`);
+            if (!categoria) {
+                console.error(`❌ [Validación] Categoría código ${codi_categoria} no encontrada`);
                 res.status(400).json({
                     success: false,
-                    error: `La subcategoría especificada (ID: ${id_subcat}) no existe`
+                    error: `La categoría especificada (código: ${codi_categoria}) no existe`
+                });
+                return;
+            }
+        }
+
+        // Validar grupo si se proporciona
+        if (codi_grupo) {
+            const grupo = await prisma.grupo.findUnique({
+                where: { codi_grupo }
+            });
+
+            if (!grupo) {
+                console.error(`❌ [Validación] Grupo código ${codi_grupo} no encontrado`);
+                res.status(400).json({
+                    success: false,
+                    error: `El grupo especificado (código: ${codi_grupo}) no existe`
                 });
                 return;
             }
         }
 
         // Validar IVA si se proporciona
-        if (id_iva) {
-            const iva = await prisma.iva.findFirst({
-                where: { id_iva }
+        if (codi_impuesto) {
+            const iva = await prisma.iva.findUnique({
+                where: { codi_impuesto }
             });
 
             if (!iva) {
-                console.error(`❌ [Validación] IVA ID ${id_iva} no encontrado`);
+                console.error(`❌ [Validación] IVA código ${codi_impuesto} no encontrado`);
                 res.status(400).json({
                     success: false,
-                    error: `El tipo de IVA especificado (ID: ${id_iva}) no existe`
+                    error: `El tipo de IVA especificado (código: ${codi_impuesto}) no existe`
                 });
                 return;
             }

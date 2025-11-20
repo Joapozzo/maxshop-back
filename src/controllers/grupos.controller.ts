@@ -1,45 +1,31 @@
 import { Request, Response } from 'express';
-import { CategoriasService } from '../services/categorias.service';
-import { 
-    ICreateCategoriaDTO, 
-    IUpdateCategoriaDTO,
-} from '../types/categoria.type';
-import { IApiResponse } from '../types/index';
+import { GruposService, ICreateGrupoDTO, IUpdateGrupoDTO } from '../services/grupos.service';
+import { IApiResponse } from '../types';
 
-const categoriasService = new CategoriasService();
+const gruposService = new GruposService();
 
-export class CategoriasController {
+export class GruposController {
 
-    // ========================================
-    // CONTROLADORES PARA CATEGORÍAS
-    // ========================================
-
-    async getAllCategorias(req: Request, res: Response): Promise<void> {
+    async getAll(req: Request, res: Response): Promise<void> {
         try {
-            console.log('🔍 Iniciando getAllCategorias...');
-            const categorias = await categoriasService.getAllCategorias();
-            console.log('✅ Categorías obtenidas:', categorias);
-            console.log('📊 Cantidad:', categorias.length);
+            const grupos = await gruposService.getAll();
             
             const response: IApiResponse = {
                 success: true,
-                data: categorias
+                data: grupos
             };
 
-            console.log('📤 Enviando respuesta...');
             res.json(response);
         } catch (error) {
-            console.error('❌ Error en getAllCategorias:', error);
-            console.error('📋 Tipo de error:', typeof error);
-            console.error('📝 Mensaje:', error instanceof Error ? error.message : 'Sin mensaje');
+            console.error('Error en getAll:', error);
             res.status(500).json({
                 success: false,
-                error: error instanceof Error ? error.message : 'Error al obtener categorías'
+                error: 'Error al obtener grupos'
             });
         }
     }
 
-    async getCategoriaById(req: Request, res: Response): Promise<void> {
+    async getById(req: Request, res: Response): Promise<void> {
         try {
             const id = parseInt(req.params.id);
 
@@ -51,36 +37,36 @@ export class CategoriasController {
                 return;
             }
 
-            const categoria = await categoriasService.getCategoriaById(id);
+            const grupo = await gruposService.getById(id);
 
-            if (!categoria) {
+            if (!grupo) {
                 res.status(404).json({
                     success: false,
-                    error: 'Categoría no encontrada'
+                    error: 'Grupo no encontrado'
                 });
                 return;
             }
 
             const response: IApiResponse = {
                 success: true,
-                data: categoria
+                data: grupo
             };
 
             res.json(response);
         } catch (error) {
-            console.error('Error en getCategoriaById:', error);
+            console.error('Error en getById:', error);
             res.status(500).json({
                 success: false,
-                error: 'Error al obtener categoría'
+                error: 'Error al obtener grupo'
             });
         }
     }
 
-    async getCategoriaByCodigo(req: Request, res: Response): Promise<void> {
+    async getByCodigo(req: Request, res: Response): Promise<void> {
         try {
-            const codi_categoria = req.params.codigo;
+            const codi_grupo = req.params.codigo;
 
-            if (!codi_categoria) {
+            if (!codi_grupo) {
                 res.status(400).json({
                     success: false,
                     error: 'Código inválido'
@@ -88,66 +74,76 @@ export class CategoriasController {
                 return;
             }
 
-            const categoria = await categoriasService.getCategoriaByCodigo(codi_categoria);
+            const grupo = await gruposService.getByCodigo(codi_grupo);
 
-            if (!categoria) {
+            if (!grupo) {
                 res.status(404).json({
                     success: false,
-                    error: 'Categoría no encontrada'
+                    error: 'Grupo no encontrado'
                 });
                 return;
             }
 
             const response: IApiResponse = {
                 success: true,
-                data: categoria
+                data: grupo
             };
 
             res.json(response);
         } catch (error) {
-            console.error('Error en getCategoriaByCodigo:', error);
+            console.error('Error en getByCodigo:', error);
             res.status(500).json({
                 success: false,
-                error: 'Error al obtener categoría'
+                error: 'Error al obtener grupo'
             });
         }
     }
 
-    async createCategoria(req: Request, res: Response): Promise<void> {
+    async create(req: Request, res: Response): Promise<void> {
         try {
-            const data: ICreateCategoriaDTO = req.body;
+            const data: ICreateGrupoDTO = req.body;
 
             // Validaciones básicas
-            if (!data.nombre || data.nombre.trim() === '') {
+            if (!data.codi_grupo || data.codi_grupo.trim() === '') {
                 res.status(400).json({
                     success: false,
-                    error: 'El nombre es requerido'
+                    error: 'El código de grupo es requerido'
                 });
                 return;
             }
 
-            const nuevaCategoria = await categoriasService.createCategoria(data);
+            // Verificar si ya existe un grupo con ese código
+            const existe = await gruposService.existsByCodigo(data.codi_grupo);
+            if (existe) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Ya existe un grupo con ese código'
+                });
+                return;
+            }
+
+            const nuevoGrupo = await gruposService.create(data);
 
             const response: IApiResponse = {
                 success: true,
-                data: nuevaCategoria,
-                message: 'Categoría creada exitosamente'
+                data: nuevoGrupo,
+                message: 'Grupo creado exitosamente'
             };
 
             res.status(201).json(response);
         } catch (error) {
-            console.error('Error en createCategoria:', error);
+            console.error('Error en create:', error);
             res.status(500).json({
                 success: false,
-                error: 'Error al crear categoría'
+                error: 'Error al crear grupo'
             });
         }
     }
 
-    async updateCategoria(req: Request, res: Response): Promise<void> {
+    async update(req: Request, res: Response): Promise<void> {
         try {
             const id = parseInt(req.params.id);
-            const data: IUpdateCategoriaDTO = req.body;
+            const data: IUpdateGrupoDTO = req.body;
 
             if (isNaN(id)) {
                 res.status(400).json({
@@ -158,34 +154,34 @@ export class CategoriasController {
             }
 
             // Verificar si existe
-            const existe = await categoriasService.categoriaExists(id);
+            const existe = await gruposService.exists(id);
             if (!existe) {
                 res.status(404).json({
                     success: false,
-                    error: 'Categoría no encontrada'
+                    error: 'Grupo no encontrado'
                 });
                 return;
             }
 
-            const categoriaActualizada = await categoriasService.updateCategoria(id, data);
+            const grupoActualizado = await gruposService.update(id, data);
 
             const response: IApiResponse = {
                 success: true,
-                data: categoriaActualizada,
-                message: 'Categoría actualizada exitosamente'
+                data: grupoActualizado,
+                message: 'Grupo actualizado exitosamente'
             };
 
             res.json(response);
         } catch (error) {
-            console.error('Error en updateCategoria:', error);
+            console.error('Error en update:', error);
             res.status(500).json({
                 success: false,
-                error: 'Error al actualizar categoría'
+                error: 'Error al actualizar grupo'
             });
         }
     }
 
-    async deleteCategoria(req: Request, res: Response): Promise<void> {
+    async delete(req: Request, res: Response): Promise<void> {
         try {
             const id = parseInt(req.params.id);
 
@@ -198,25 +194,25 @@ export class CategoriasController {
             }
 
             // Verificar si existe
-            const existe = await categoriasService.categoriaExists(id);
+            const existe = await gruposService.exists(id);
             if (!existe) {
                 res.status(404).json({
                     success: false,
-                    error: 'Categoría no encontrada'
+                    error: 'Grupo no encontrado'
                 });
                 return;
             }
 
-            await categoriasService.deleteCategoria(id);
+            await gruposService.delete(id);
 
             const response: IApiResponse = {
                 success: true,
-                message: 'Categoría eliminada exitosamente'
+                message: 'Grupo eliminado exitosamente'
             };
 
             res.json(response);
         } catch (error) {
-            console.error('Error en deleteCategoria:', error);
+            console.error('Error en delete:', error);
             
             // Si el error es por productos asociados, enviar mensaje específico
             if (error instanceof Error && error.message.includes('producto(s) asociado(s)')) {
@@ -229,9 +225,9 @@ export class CategoriasController {
 
             res.status(500).json({
                 success: false,
-                error: 'Error al eliminar categoría'
+                error: 'Error al eliminar grupo'
             });
         }
     }
-
 }
+

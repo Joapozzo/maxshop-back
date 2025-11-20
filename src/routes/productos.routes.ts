@@ -11,14 +11,17 @@ const productosController = new ProductosController();
 
 // Rutas para obtener datos del formulario (sin middleware)
 router.get('/contenido-crear', productosController.getContenidoCrearProducto.bind(productosController));
-router.get('/subcategorias/:id_cat', productosController.getSubcategoriasPorCategoria.bind(productosController));
 
 // Rutas especiales (sin middleware de validación individual)
 router.get('/destacados', productosController.getDestacados.bind(productosController));
 router.get('/stock-bajo', productosController.getStockBajo.bind(productosController));
+router.get('/con-imagenes', productosController.getProductosConImagenes.bind(productosController));
 
 // Rutas CRUD generales
 router.get('/', productosController.getAll.bind(productosController));
+
+// GET por código: buscar por codi_arti
+router.get('/codigo/:codigo', productosController.getByCodigo.bind(productosController));
 
 // GET por ID: validar que el producto esté activo
 router.get('/:id', 

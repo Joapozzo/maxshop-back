@@ -20,9 +20,17 @@ export class MarcasService {
         return marca as IMarca | null;
     }
 
+    async getByCodigo(codi_marca: string): Promise<IMarca | null> {
+        const marca = await prisma.marca.findUnique({
+            where: { codi_marca }
+        });
+        return marca as IMarca | null;
+    }
+
     async create(data: ICreateMarcaDTO): Promise<IMarca> {
         const nuevaMarca = await prisma.marca.create({
             data: {
+                codi_marca: data.codi_marca,
                 nombre: data.nombre,
                 descripcion: data.descripcion 
             }
@@ -43,8 +51,16 @@ export class MarcasService {
 
     async delete(id: number): Promise<void> {
         // Verificar si hay productos usando esta marca
-        const productosCount = await prisma.productos.count({
+        const marca = await prisma.marca.findUnique({
             where: { id_marca: id }
+        });
+
+        if (!marca) {
+            throw new Error('Marca no encontrada');
+        }
+
+        const productosCount = await prisma.productos.count({
+            where: { codi_marca: marca.codi_marca }
         });
 
         if (productosCount > 0) {

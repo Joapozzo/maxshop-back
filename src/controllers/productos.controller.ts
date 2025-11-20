@@ -9,16 +9,24 @@ export class ProductosController {
 
     async getAll(req: Request, res: Response): Promise<void> {
         try {
+            // Parsear filtros, aceptando códigos o IDs
+            const id_cat = req.query.id_cat as string | undefined;
+            const id_marca = req.query.id_marca as string | undefined;
+            const codi_grupo = req.query.codi_grupo as string | undefined;
+
+            const codi_impuesto = req.query.codi_impuesto as string | undefined;
+
             const filters: IProductoFilters = {
                 page: parseInt(req.query.page as string) || 1,
-                limit: parseInt(req.query.limit as string) || 10,
+                limit: parseInt(req.query.limit as string) || 100, // ⭐ Límite por defecto 100
                 order_by: (req.query.order_by as any) || 'creado_en',
                 order: (req.query.order as any) || 'desc',
                 estado: req.query.estado !== undefined ? parseInt(req.query.estado as string) as 0 | 1 : undefined,
                 busqueda: req.query.busqueda as string,
-                id_subcat: req.query.id_subcat ? parseInt(req.query.id_subcat as string) : undefined,
-                id_cat: req.query.id_cat ? parseInt(req.query.id_cat as string) : undefined,
-                id_marca: req.query.id_marca ? parseInt(req.query.id_marca as string) : undefined,
+                id_cat: id_cat ? (isNaN(Number(id_cat)) ? id_cat : Number(id_cat)) : undefined,
+                id_marca: id_marca ? (isNaN(Number(id_marca)) ? id_marca : Number(id_marca)) : undefined,
+                codi_grupo: codi_grupo,
+                codi_impuesto: codi_impuesto ? (isNaN(Number(codi_impuesto)) ? codi_impuesto : Number(codi_impuesto)) : undefined,
                 precio_min: req.query.precio_min ? parseFloat(req.query.precio_min as string) : undefined,
                 precio_max: req.query.precio_max ? parseFloat(req.query.precio_max as string) : undefined,
                 destacado: req.query.destacado === 'true' ? true : req.query.destacado === 'false' ? false : undefined,
@@ -67,6 +75,43 @@ export class ProductosController {
             res.json(response);
         } catch (error) {
             console.error('Error en getById:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener producto'
+            });
+        }
+    }
+
+    async getByCodigo(req: Request, res: Response): Promise<void> {
+        try {
+            const codi_arti = req.params.codigo;
+
+            if (!codi_arti) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Código inválido'
+                });
+                return;
+            }
+
+            const producto = await productosService.getByCodigo(codi_arti);
+
+            if (!producto) {
+                res.status(404).json({
+                    success: false,
+                    error: 'Producto no encontrado o inactivo'
+                });
+                return;
+            }
+
+            const response: IApiResponse = {
+                success: true,
+                data: producto
+            };
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error en getByCodigo:', error);
             res.status(500).json({
                 success: false,
                 error: 'Error al obtener producto'
@@ -274,34 +319,7 @@ export class ProductosController {
         }
     }
 
-    async getSubcategoriasPorCategoria(req: Request, res: Response): Promise<void> {
-        try {
-            const id_cat = parseInt(req.params.id_cat);
-
-            if (isNaN(id_cat)) {
-                res.status(400).json({
-                    success: false,
-                    error: 'ID de categoría inválido'
-                });
-                return;
-            }
-
-            const subcategorias = await productosService.getSubcategoriasPorCategoria(id_cat);
-
-            const response: IApiResponse = {
-                success: true,
-                data: subcategorias
-            };
-
-            res.json(response);
-        } catch (error) {
-            console.error('Error en getSubcategoriasPorCategoria:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Error al obtener subcategorías'
-            });
-        }
-    }
+    // Método removido - ya no hay subcategorías en el nuevo schema
 
     /**
      * ⭐ NUEVO: Toggle destacado (agregar/quitar producto destacado)
@@ -338,6 +356,43 @@ export class ProductosController {
             res.status(500).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Error al cambiar estado destacado'
+            });
+        }
+    }
+
+    async getProductosConImagenes(req: Request, res: Response): Promise<void> {
+        try {
+            // Parsear filtros, aceptando códigos o IDs
+            const id_cat = req.query.id_cat as string | undefined;
+            const id_marca = req.query.id_marca as string | undefined;
+            const codi_grupo = req.query.codi_grupo as string | undefined;
+            const codi_impuesto = req.query.codi_impuesto as string | undefined;
+
+            const filters: IProductoFilters = {
+                page: parseInt(req.query.page as string) || 1,
+                limit: parseInt(req.query.limit as string) || 100,
+                order_by: (req.query.order_by as any) || 'creado_en',
+                order: (req.query.order as any) || 'desc',
+                estado: req.query.estado !== undefined ? parseInt(req.query.estado as string) as 0 | 1 : undefined,
+                busqueda: req.query.busqueda as string,
+                id_cat: id_cat ? (isNaN(Number(id_cat)) ? id_cat : Number(id_cat)) : undefined,
+                id_marca: id_marca ? (isNaN(Number(id_marca)) ? id_marca : Number(id_marca)) : undefined,
+                codi_grupo: codi_grupo,
+                codi_impuesto: codi_impuesto ? (isNaN(Number(codi_impuesto)) ? codi_impuesto : Number(codi_impuesto)) : undefined,
+                precio_min: req.query.precio_min ? parseFloat(req.query.precio_min as string) : undefined,
+                precio_max: req.query.precio_max ? parseFloat(req.query.precio_max as string) : undefined,
+                destacado: req.query.destacado === 'true' ? true : req.query.destacado === 'false' ? false : undefined,
+                financiacion: req.query.financiacion === 'true' ? true : req.query.financiacion === 'false' ? false : undefined,
+                stock_bajo: req.query.stock_bajo === 'true' ? true : req.query.stock_bajo === 'false' ? false : undefined,
+            };
+
+            const result = await productosService.getProductosConImagenes(filters);
+            res.json(result);
+        } catch (error) {
+            console.error('Error en getProductosConImagenes:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener productos con imágenes'
             });
         }
     }
