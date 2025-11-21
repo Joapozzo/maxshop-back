@@ -33,3 +33,9 @@ CREATE INDEX IF NOT EXISTS idx_auditoria_usuario ON auditoria(id_usuario);
 -- ORDER BY ordinal_position;
 
 
+
+
+
+
+
+
