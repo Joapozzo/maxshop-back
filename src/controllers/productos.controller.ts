@@ -319,12 +319,6 @@ export class ProductosController {
         }
     }
 
-    // Método removido - ya no hay subcategorías en el nuevo schema
-
-    /**
-     * ⭐ NUEVO: Toggle destacado (agregar/quitar producto destacado)
-     * PATCH /api/products/:id/destacado
-     */
     async toggleDestacado(req: Request, res: Response): Promise<void> {
         try {
             const id = parseInt(req.params.id);

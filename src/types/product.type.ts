@@ -1,5 +1,5 @@
 import { EstadoGeneral, IIva, IMarca } from ".";
-import { ICategoria, ISubcategoria } from "./categoria.type";
+import { ICategoria } from "./categoria.type";
 
 export interface IProductos {
     id_prod: number;

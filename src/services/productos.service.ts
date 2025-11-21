@@ -10,7 +10,7 @@ export class ProductosService {
     async getAll(filters: IProductoFilters): Promise<IPaginatedResponse<IProductos>> {
         const {
             page = 1,
-            limit = 100, // ⭐ Límite por defecto de 100 productos
+            limit = 100,
             order_by = 'creado_en',
             order = 'desc',
             estado,
@@ -35,6 +35,16 @@ export class ProductosService {
         } else {
             whereClause.estado = 1; // Por defecto, solo activos
         }
+
+        // ⚠️ VALIDACIÓN TEMPORAL: Solo productos con imagen principal (no null y no vacío)
+        // Esta validación se aplica SIEMPRE, con o sin otros filtros
+        if (!whereClause.AND) {
+            whereClause.AND = [];
+        }
+        whereClause.AND.push(
+            { img_principal: { not: null } },
+            { img_principal: { not: { equals: '' } } }
+        );
 
         if (destacado !== undefined) whereClause.destacado = destacado;
         if (financiacion !== undefined) whereClause.financiacion = financiacion;
@@ -149,12 +159,12 @@ export class ProductosService {
         ]);
 
         // Aplicar filtro de stock bajo en memoria si es necesario
-        let productosFiltrados = productos as IProductos[];
+        let productosFiltrados = productos as unknown as IProductos[];
         if (aplicarFiltroStockBajo) {
-            productosFiltrados = productos.filter((producto) => {
+            productosFiltrados = productos.filter((producto: any) => {
                 if (!producto.stock || !producto.stock_min) return false;
                 return Number(producto.stock) <= Number(producto.stock_min);
-            }) as IProductos[];
+            }) as unknown as IProductos[];
         }
 
         return {
@@ -182,7 +192,7 @@ export class ProductosService {
             },
         });
 
-        return producto as IProductos | null;
+        return producto as unknown as IProductos | null;
     }
 
     async getByCodigo(codi_arti: string): Promise<IProductos | null> {
@@ -202,7 +212,7 @@ export class ProductosService {
             return null;
         }
 
-        return producto as IProductos | null;
+        return producto as unknown as IProductos | null;
     }
 
     async create(data: ICreateProductoDTO): Promise<IProductos> {
@@ -227,7 +237,7 @@ export class ProductosService {
             }
         });
 
-        return nuevoProducto as IProductos;
+        return nuevoProducto as unknown as IProductos;
     }
 
     async update(id: number, data: IUpdateProductoDTO): Promise<IProductos> {
@@ -251,7 +261,7 @@ export class ProductosService {
             }
         });
 
-        return productoActualizado as IProductos;
+        return productoActualizado as unknown as IProductos;
     }
 
     async delete(id: number): Promise<void> {
@@ -302,10 +312,12 @@ export class ProductosService {
         const productos = await prisma.productos.findMany({
             where: {
                 destacado: true,
-                estado: 1, // ⭐ Solo productos activos
-                stock: {
-                    gt: 0
-                }
+                estado: 1,
+                // ⚠️ VALIDACIÓN TEMPORAL: Solo productos con imagen principal
+                AND: [
+                    { img_principal: { not: null } },
+                    { img_principal: { not: { equals: '' } } }
+                ]
             },
             include: {
                 categoria: true,
@@ -319,7 +331,7 @@ export class ProductosService {
             }
         });
 
-        return productos as IProductos[];
+        return productos as unknown as IProductos[];
     }
 
     async getStockBajo(): Promise<IProductos[]> {
@@ -342,12 +354,12 @@ export class ProductosService {
         });
 
         // Filtrar en memoria los que tienen stock <= stock_min
-        const productosStockBajo = productos.filter((producto) => {
+        const productosStockBajo = productos.filter((producto: any) => {
             if (!producto.stock || !producto.stock_min) return false;
             return Number(producto.stock) <= Number(producto.stock_min);
         });
 
-        return productosStockBajo as IProductos[];
+        return productosStockBajo as unknown as IProductos[];
     }
 
     async getContenidoCrearProducto(): Promise<ICrearProductoContenido> {
@@ -404,7 +416,7 @@ export class ProductosService {
             }
         });
 
-        return productoActualizado as IProductos;
+        return productoActualizado as unknown as IProductos;
     }
 
     /**
@@ -467,7 +479,7 @@ export class ProductosService {
         });
 
         // Filtrar productos que tienen imágenes
-        const productosConImagen = allProducts.data.filter(producto => 
+        const productosConImagen = allProducts.data.filter((producto: any) => 
             codigosConImagen.has(producto.codi_arti)
         );
 
