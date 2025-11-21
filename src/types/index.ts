@@ -78,14 +78,23 @@ export interface ICliente {
 
 export interface IIva {
     id_iva: number;
+    codi_impuesto: string;
     nombre?: string | null;
+    porcentaje?: number | null;
     descripcion?: string | null;
+    activo?: boolean | null;
+    creado_en?: Date | null;
+    actualizado_en?: Date | null;
 }
 
 export interface IMarca {
     id_marca: number;
+    codi_marca: string;
     nombre?: string | null;
     descripcion?: string | null;
+    activo?: boolean | null;
+    creado_en?: Date | null;
+    actualizado_en?: Date | null;
 }
 
 export interface IEventos {
@@ -293,6 +302,7 @@ export interface IVentaFilters {
 // =======================================
 
 export interface ICreateMarcaDTO {
+    codi_marca: string;
     nombre: string;
     descripcion?: string;
 }

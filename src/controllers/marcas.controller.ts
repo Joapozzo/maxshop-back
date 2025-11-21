@@ -64,6 +64,43 @@ export class MarcasController {
         }
     }
 
+    async getByCodigo(req: Request, res: Response): Promise<void> {
+        try {
+            const codi_marca = req.params.codigo;
+
+            if (!codi_marca) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Código inválido'
+                });
+                return;
+            }
+
+            const marca = await marcasService.getByCodigo(codi_marca);
+
+            if (!marca) {
+                res.status(404).json({
+                    success: false,
+                    error: 'Marca no encontrada'
+                });
+                return;
+            }
+
+            const response: IApiResponse = {
+                success: true,
+                data: marca
+            };
+
+            res.json(response);
+        } catch (error) {
+            console.error('Error en getByCodigo:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Error al obtener marca'
+            });
+        }
+    }
+
     async create(req: Request, res: Response): Promise<void> {
         try {
             const data: ICreateMarcaDTO = req.body;

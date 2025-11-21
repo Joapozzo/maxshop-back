@@ -3,46 +3,56 @@ import { ICategoria, ISubcategoria } from "./categoria.type";
 
 export interface IProductos {
     id_prod: number;
-    id_cat?: number | null;
-    id_subcat?: number | null;
+    codi_arti: string;
+    codi_categoria?: string | null;
+    codi_marca?: string | null;
+    codi_grupo?: string | null;
+    codi_impuesto?: string | null;
     id_interno?: string | null;
     cod_sku?: string | null;
     nombre?: string | null;
     descripcion?: string | null;
     modelo?: string | null;
-    id_marca?: number | null;
     precio_mayorista?: number | null;
     precio_minorista?: number | null;
     precio_evento?: number | null;
     precio?: number | null;
-    id_iva?: number | null;
+    precio_sin_iva?: number | null;
+    iva_monto?: number | null;
     stock?: number | null;
     stock_min?: number | null;
     stock_mayorista?: number | null;
+    unidad_medida?: string | null;
+    unidades_por_producto?: number | null;
+    codi_barras?: string | null;
     img_principal?: string | null;
     imagenes?: string[] | null; // JSONB
     destacado?: boolean | null;
     financiacion?: boolean | null;
+    activo?: string | null;
     creado_en?: Date | null;
     actualizado_en?: Date | null;
     estado?: EstadoGeneral | null;
     // Relaciones
-    subcategoria?: ISubcategoria | null;
+    categoria?: ICategoria | null;
     marca?: IMarca | null;
+    grupo?: any | null; // IGrupo
     iva?: IIva | null;
 }
 
 export interface ICrearProductoContenido {
     marcas: IMarca[];
     categorias: ICategoria[];
-    subcategorias: ISubcategoria[];
+    grupos: any[]; // IGrupo[]
     ivas: IIva[];
 }
 
 export interface IProductoFilters {
-    id_subcat?: number;
-    id_cat?: number;
-    id_marca?: number;
+    id_subcat?: number; // Deprecated - mantener por compatibilidad
+    id_cat?: number | string; // Puede ser ID o código
+    id_marca?: number | string; // Puede ser ID o código
+    codi_grupo?: string; // Código de grupo
+    codi_impuesto?: string | number; // Código de IVA o ID
     precio_min?: number;
     precio_max?: number;
     destacado?: boolean;
@@ -58,20 +68,29 @@ export interface IProductoFilters {
 
 // Para crear producto
 export interface ICreateProductoDTO {
-    id_cat: number;
-    id_subcat: number;
+    codi_arti: string;
+    codi_categoria?: string;
+    codi_marca?: string;
+    codi_grupo?: string;
+    codi_impuesto?: string;
     nombre: string;
     descripcion?: string;
-    id_marca?: number;
     precio: number;
     precio_mayorista?: number;
     precio_minorista?: number;
-    id_iva?: number;
-    stock: number;
+    stock?: number;
+    unidad_medida?: string;
+    unidades_por_producto?: number;
+    codi_barras?: string;
     cod_sku?: string;
     img_principal?: string;
     imagenes?: string[];
     destacado?: boolean;
+    // Campos legacy para compatibilidad
+    id_cat?: number;
+    id_subcat?: number;
+    id_marca?: number;
+    id_iva?: number;
 }
 
 // Para actualizar producto

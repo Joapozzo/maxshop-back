@@ -2,10 +2,14 @@ import { IProductos } from "./product.type";
 
 export interface ICategoria {
     id_cat: number;
+    codi_categoria: string;
     nombre?: string | null;
     descripcion?: string | null;
+    activo?: boolean | null;
+    creado_en?: Date | null;
+    actualizado_en?: Date | null;
     // Relaciones
-    subcategorias?: ISubcategoria[];
+    productos?: IProductos[];
 }
 
 export interface ISubcategoria {
@@ -19,6 +23,7 @@ export interface ISubcategoria {
 }
 
 export interface ICreateCategoriaDTO {
+    codi_categoria: string;
     nombre: string;
     descripcion?: string;
 }
